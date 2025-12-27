@@ -7,6 +7,9 @@
 package main
 
 import (
+	http2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/adapter/in/http"
+	persistence2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/adapter/out/persistence"
+	service2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/application/service"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/in/http"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/persistence"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/service"
@@ -25,8 +28,12 @@ func InitializeServer() (*Server, error) {
 	}
 	userRepository := persistence.NewGormUserRepository(db)
 	loggerLogger := logger.NewLogger()
-	userUsecase := service.NewUserService(userRepository, loggerLogger)
-	handler := http.NewHandler(userUsecase)
-	server := NewServer(handler)
+	userService := service.NewUserService(userRepository, loggerLogger)
+	handler := http.NewHandler(userService)
+	taskRepository := persistence2.NewGormTaskRepository(db)
+	manager := database.NewGormTxManager(db)
+	taskUsecase := service2.NewTaskService(taskRepository, userService, manager)
+	httpHandler := http2.NewHandler(taskUsecase)
+	server := NewServer(handler, httpHandler)
 	return server, nil
 }

@@ -37,3 +37,13 @@ func (r *GormUserRepository) FindByID(ctx context.Context, id string) (*entity.U
 		Email: model.Email,
 	}, nil
 }
+
+func (r *GormUserRepository) ExistsByID(ctx context.Context, id string) (bool, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Debug().
+		Model(&UserModel{}).
+		Where("id = ?", id).
+		Count(&count).Error
+
+	return count > 0, err
+}

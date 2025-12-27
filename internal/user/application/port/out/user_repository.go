@@ -8,4 +8,5 @@ import (
 
 type UserRepository interface {
 	Save(ctx context.Context, user *entity.User) error
+	ExistsByID(ctx context.Context, id string) (bool, error)
 }

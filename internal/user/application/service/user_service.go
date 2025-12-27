@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/logger"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/in"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/out"
@@ -14,7 +15,12 @@ type UserService struct {
 	logger logger.Logger
 }
 
-func NewUserService(repo out.UserRepository, log logger.Logger) in.UserUsecase {
+var (
+	_ in.UserUsecase = (*UserService)(nil)
+	_ in.UserReader  = (*UserService)(nil)
+)
+
+func NewUserService(repo out.UserRepository, log logger.Logger) *UserService {
 	return &UserService{
 		repo:   repo,
 		logger: log,
@@ -24,7 +30,7 @@ func NewUserService(repo out.UserRepository, log logger.Logger) in.UserUsecase {
 func (s *UserService) Create(ctx context.Context, email string) error {
 	s.logger.Info("creating user", "email", email)
 	user := &entity.User{
-		ID:    "generated-id",
+		ID:    uuid.NewString(),
 		Email: email,
 	}
 
@@ -34,4 +40,8 @@ func (s *UserService) Create(ctx context.Context, email string) error {
 	}
 
 	return nil
+}
+
+func (s *UserService) Exists(ctx context.Context, userID string) (bool, error) {
+	return s.repo.ExistsByID(ctx, userID)
 }

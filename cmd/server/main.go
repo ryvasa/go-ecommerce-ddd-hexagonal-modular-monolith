@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
-
+	taskHttp "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/adapter/in/http"
 	userHttp "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/in/http"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/config"
 )
@@ -15,14 +15,15 @@ type Server struct {
 
 func NewServer(
 	userHandler *userHttp.Handler,
+	taskHandler *taskHttp.Handler,
 ) *Server {
 	r := gin.Default()
 
 	userHandler.Register(r)
+	taskHandler.Register(r)
 
 	return &Server{Engine: r}
 }
-
 func main() {
 	config.LoadEnv()
 

@@ -6,6 +6,7 @@ package main
 import (
 	"github.com/google/wire"
 
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user"
 
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/config"
@@ -18,10 +19,12 @@ func InitializeServer() (*Server, error) {
 		// infra & config
 		config.LoadMySQLConfig,
 		database.NewGormDB,
+		database.NewGormTxManager,
 		logger.NewLogger,
 
 		// modules
 		user.Module,
+		task.Module,
 
 		// server
 		NewServer,
