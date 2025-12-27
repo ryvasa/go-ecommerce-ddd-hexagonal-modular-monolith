@@ -6,18 +6,22 @@ package main
 import (
 	"github.com/google/wire"
 
-	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task"
-	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user"
-
+	sharedEvent "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/event"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/config"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/database"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/logger"
+
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user"
 )
 
-func InitializeServer() (*Server, error) {
+func InitializeServer(
+	eventPublisher sharedEvent.Publisher,
+) (*Server, error) {
 	wire.Build(
-		// infra & config
 		config.LoadMySQLConfig,
+
+		// infra
 		database.NewGormDB,
 		database.NewGormTxManager,
 		logger.NewLogger,
@@ -26,7 +30,6 @@ func InitializeServer() (*Server, error) {
 		user.Module,
 		task.Module,
 
-		// server
 		NewServer,
 	)
 	return nil, nil

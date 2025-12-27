@@ -7,6 +7,7 @@
 package main
 
 import (
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/event"
 	http2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/adapter/in/http"
 	persistence2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/adapter/out/persistence"
 	service2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/application/service"
@@ -20,20 +21,20 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeServer() (*Server, error) {
+func InitializeServer(eventPublisher event.Publisher) (*Server, error) {
+	loggerLogger := logger.NewLogger()
 	mySQLConfig := config.LoadMySQLConfig()
 	db, err := database.NewGormDB(mySQLConfig)
 	if err != nil {
 		return nil, err
 	}
 	userRepository := persistence.NewGormUserRepository(db)
-	loggerLogger := logger.NewLogger()
 	userService := service.NewUserService(userRepository, loggerLogger)
 	handler := http.NewHandler(userService)
 	taskRepository := persistence2.NewGormTaskRepository(db)
 	manager := database.NewGormTxManager(db)
-	taskUsecase := service2.NewTaskService(taskRepository, userService, manager)
+	taskUsecase := service2.NewTaskService(taskRepository, userService, manager, eventPublisher)
 	httpHandler := http2.NewHandler(taskUsecase)
-	server := NewServer(handler, httpHandler)
+	server := NewServer(loggerLogger, handler, httpHandler)
 	return server, nil
 }

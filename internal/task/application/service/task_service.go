@@ -2,32 +2,38 @@ package service
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/apperror"
+	sharedEvent "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/event"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/transaction"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/application/port/in"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/application/port/out"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/domain/entity"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/domain/event"
 	userIn "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/in"
 )
 
 type TaskService struct {
-	repo       out.TaskRepository
-	userReader userIn.UserReader
-	txManager  transaction.Manager
+	repo           out.TaskRepository
+	userReader     userIn.UserReader
+	txManager      transaction.Manager
+	eventPublisher sharedEvent.Publisher
 }
 
 func NewTaskService(
 	repo out.TaskRepository,
 	userReader userIn.UserReader,
 	txManager transaction.Manager,
+	eventPublisher sharedEvent.Publisher,
 ) in.TaskUsecase {
 	return &TaskService{
-		repo:       repo,
-		userReader: userReader,
-		txManager:  txManager,
+		repo:           repo,
+		userReader:     userReader,
+		txManager:      txManager,
+		eventPublisher: eventPublisher,
 	}
 }
 
@@ -38,7 +44,7 @@ func (s *TaskService) Create(ctx context.Context, userID, title string) error {
 			return err
 		}
 		if !exists {
-			return errors.New("user not found")
+			return apperror.NotFound("user not found")
 		}
 
 		task := &entity.Task{
@@ -47,7 +53,26 @@ func (s *TaskService) Create(ctx context.Context, userID, title string) error {
 			Title:  title,
 			Done:   false,
 		}
-		return s.repo.Save(txCtx, task)
+
+		err = s.repo.Save(txCtx, task)
+		if err != nil {
+			return err
+		}
+
+		err = s.eventPublisher.Publish(
+			txCtx,
+			event.TaskCreated{
+				TaskID: task.ID,
+				UserID: task.UserID,
+			},
+		)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		fmt.Println("Task created successfully")
+		return nil
 	})
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/response"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/application/port/in"
 )
 
@@ -28,12 +29,12 @@ func (h *Handler) create(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.HandleError(c, err)
 		return
 	}
 
 	if err := h.usecase.Create(c.Request.Context(), req.UserID, req.Title); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.HandleError(c, err)
 		return
 	}
 
@@ -43,7 +44,7 @@ func (h *Handler) create(c *gin.Context) {
 func (h *Handler) list(c *gin.Context) {
 	tasks, err := h.usecase.List(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.HandleError(c, err)
 		return
 	}
 
