@@ -1,0 +1,13 @@
+p, authenticated, task, get
+p, authenticated, task, list
+p, authenticated, user, get
+
+
+p, user, cart, add
+p, user, order, create
+
+p, admin, product, *
+
+
+g, user, authenticated
+g, admin, authenticated

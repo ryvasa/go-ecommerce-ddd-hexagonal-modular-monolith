@@ -18,11 +18,13 @@ func NewJWTGenerator(cfg config.JWTConfig) *JWTGenerator {
 		expiration: cfg.Expiration,
 	}
 }
-func (j *JWTGenerator) Generate(userID string) (string, error) {
+
+func (j *JWTGenerator) Generate(userID string, role string) (string, error) {
 	claims := jwt.MapClaims{
-		"sub": userID,
-		"exp": time.Now().Add(j.expiration).Unix(),
-		"iat": time.Now().Unix(),
+		"sub":  userID,
+		"role": role,
+		"exp":  time.Now().Add(j.expiration).Unix(),
+		"iat":  time.Now().Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

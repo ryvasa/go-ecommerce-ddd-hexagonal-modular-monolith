@@ -20,6 +20,7 @@ import (
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/persistence"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/security"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/service"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/authz/casbin"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/config"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/database"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/logger"
@@ -29,16 +30,21 @@ import (
 
 func InitializeServer(eventPublisher event.Publisher) (*Server, error) {
 	loggerLogger := logger.NewLogger()
+	casbinConfig := config.NewCasbinConfig()
+	enforcer, err := casbin.NewCasbinEnforcer(casbinConfig)
+	if err != nil {
+		return nil, err
+	}
 	mySQLConfig := config.LoadMySQLConfig()
 	db, err := database.NewGormDB(mySQLConfig)
 	if err != nil {
 		return nil, err
 	}
 	userRepository := persistence.NewGormUserRepository(db)
-	bcryptHasher := security.NewBcryptHasher()
+	passwordHasher := security.NewBcryptHasher()
 	jwtConfig := config.NewJWTConfig()
 	jwtGenerator := security.NewJWTGenerator(jwtConfig)
-	userService := service.NewUserService(userRepository, bcryptHasher, jwtGenerator, loggerLogger)
+	userService := service.NewUserService(userRepository, passwordHasher, jwtGenerator, loggerLogger)
 	validate := validator.NewValidator()
 	handler := http.NewHandler(userService, validate)
 	taskRepository := persistence2.NewGormTaskRepository(db)
@@ -49,6 +55,7 @@ func InitializeServer(eventPublisher event.Publisher) (*Server, error) {
 	userReaderImpl := out.NewUserReaderImpl(userRepository)
 	cartUsecase := service3.NewCartService(cartRepository, userReaderImpl, manager, eventPublisher)
 	handler2 := http3.NewHandler(cartUsecase)
-	server := NewServer(loggerLogger, handler, httpHandler, handler2)
+	jwtVerifier := security.NewJWTVerifier(jwtConfig)
+	server := NewServer(loggerLogger, enforcer, handler, httpHandler, handler2, jwtVerifier)
 	return server, nil
 }

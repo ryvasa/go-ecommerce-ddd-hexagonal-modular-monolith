@@ -5,7 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/middleware"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/response"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/in/http/mapper"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/in/http/request"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/in"
 )
@@ -20,8 +22,16 @@ func NewHandler(uc in.UserUsecase, v *validator.Validate) *Handler {
 }
 
 func (h *Handler) Register(r *gin.Engine) {
-	r.POST("/users/register", h.register)
-	r.POST("/users/login", h.login)
+	users := r.Group("/users")
+
+	users.POST("/register", h.register)
+	users.POST("/login", h.login)
+
+	// contoh endpoint protected
+	users.GET("/me",
+		middleware.Require("user", "get"),
+		h.me,
+	)
 }
 
 func (h *Handler) register(c *gin.Context) {
@@ -72,5 +82,19 @@ func (h *Handler) login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"access_token": token,
+	})
+}
+
+func (h *Handler) me(c *gin.Context) {
+	userID := c.MustGet("user_id").(string)
+
+	user, err := h.usecase.GetByID(c.Request.Context(), userID)
+	if err != nil {
+		response.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": mapper.ToUserResponse(user),
 	})
 }

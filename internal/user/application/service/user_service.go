@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/logger"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/in"
@@ -13,7 +14,7 @@ import (
 
 type UserService struct {
 	repo           out.UserRepository
-	passwordHasher valueobject.PasswordHasher
+	passwordHasher out.PasswordHasher
 	logger         logger.Logger
 	tokenGenerator out.TokenGenerator
 }
@@ -21,7 +22,7 @@ type UserService struct {
 var _ in.UserUsecase = (*UserService)(nil)
 var _ in.UserReader = (*UserService)(nil)
 
-func NewUserService(repo out.UserRepository, hasher valueobject.PasswordHasher, tokenGen out.TokenGenerator, log logger.Logger) *UserService {
+func NewUserService(repo out.UserRepository, hasher out.PasswordHasher, tokenGen out.TokenGenerator, log logger.Logger) *UserService {
 	return &UserService{
 		repo:           repo,
 		passwordHasher: hasher,
@@ -86,7 +87,7 @@ func (s *UserService) Login(ctx context.Context, cmd in.LoginUserCommand) (strin
 		return "", usererror.ErrInvalidCredential
 	}
 
-	token, err := s.tokenGenerator.Generate(user.ID())
+	token, err := s.tokenGenerator.Generate(user.ID(), "user")
 	if err != nil {
 		return "", err
 	}
@@ -96,4 +97,13 @@ func (s *UserService) Login(ctx context.Context, cmd in.LoginUserCommand) (strin
 
 func (s *UserService) Exists(ctx context.Context, userID string) (bool, error) {
 	return s.repo.ExistsByID(ctx, userID)
+}
+
+func (s *UserService) GetByID(ctx context.Context, id string) (*entity.User, error) {
+	data, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(data)
+	return data, nil
 }
