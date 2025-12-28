@@ -29,10 +29,7 @@ func (r *GormUserRepository) Save(ctx context.Context, user *entity.User) error 
 	return r.db.WithContext(ctx).Create(&model).Error
 }
 
-func (r *GormUserRepository) FindByEmail(
-	ctx context.Context,
-	email valueobject.Email,
-) (*entity.User, error) {
+func (r *GormUserRepository) FindByEmail(ctx context.Context, email valueobject.Email) (*entity.User, error) {
 
 	var model UserModel
 	if err := r.db.WithContext(ctx).

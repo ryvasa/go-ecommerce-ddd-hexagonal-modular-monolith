@@ -11,18 +11,17 @@ import (
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/apperror"
 	sharedEvent "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/event"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/transaction"
-	userIn "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/in"
 )
 
 type CartService struct {
 	repo       out.CartRepository
-	userReader userIn.UserReader
+	userReader out.UserReader
 	txManager  transaction.Manager
 }
 
 func NewCartService(
 	repo out.CartRepository,
-	userReader userIn.UserReader,
+	userReader out.UserReader,
 	txManager transaction.Manager,
 	eventPublisher sharedEvent.Publisher,
 ) in.CartUsecase {

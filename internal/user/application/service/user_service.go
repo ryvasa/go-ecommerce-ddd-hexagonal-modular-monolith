@@ -19,13 +19,9 @@ type UserService struct {
 }
 
 var _ in.UserUsecase = (*UserService)(nil)
+var _ in.UserReader = (*UserService)(nil)
 
-func NewUserService(
-	repo out.UserRepository,
-	hasher valueobject.PasswordHasher,
-	tokenGen out.TokenGenerator,
-	log logger.Logger,
-) *UserService {
+func NewUserService(repo out.UserRepository, hasher valueobject.PasswordHasher, tokenGen out.TokenGenerator, log logger.Logger) *UserService {
 	return &UserService{
 		repo:           repo,
 		passwordHasher: hasher,
@@ -68,6 +64,7 @@ func (s *UserService) Register(ctx context.Context, cmd in.RegisterUserCommand) 
 
 	return nil
 }
+
 func (s *UserService) Login(ctx context.Context, cmd in.LoginUserCommand) (string, error) {
 
 	s.logger.Info("user login attempt", "email", cmd.Email)
@@ -95,7 +92,6 @@ func (s *UserService) Login(ctx context.Context, cmd in.LoginUserCommand) (strin
 	}
 
 	return token, nil
-
 }
 
 func (s *UserService) Exists(ctx context.Context, userID string) (bool, error) {

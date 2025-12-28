@@ -16,6 +16,7 @@ import (
 	persistence2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/adapter/out/persistence"
 	service2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/application/service"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/in/http"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/persistence"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/security"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/service"
@@ -45,7 +46,8 @@ func InitializeServer(eventPublisher event.Publisher) (*Server, error) {
 	taskUsecase := service2.NewTaskService(taskRepository, userService, manager, eventPublisher)
 	httpHandler := http2.NewHandler(taskUsecase)
 	cartRepository := persistence3.NewGormCartRepository(db)
-	cartUsecase := service3.NewCartService(cartRepository, userService, manager, eventPublisher)
+	userReaderImpl := out.NewUserReaderImpl(userRepository)
+	cartUsecase := service3.NewCartService(cartRepository, userReaderImpl, manager, eventPublisher)
 	handler2 := http3.NewHandler(cartUsecase)
 	server := NewServer(loggerLogger, handler, httpHandler, handler2)
 	return server, nil

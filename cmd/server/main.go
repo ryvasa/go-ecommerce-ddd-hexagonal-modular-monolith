@@ -46,10 +46,8 @@ func main() {
 
 	logger := logger.NewLogger()
 
-	// 👇 PEGANG CONCRETE
 	inMemoryPublisher := eventInfra.NewInMemoryPublisher()
 
-	// register handler (infra concern)
 	taskCreatedHandler := eventhandler.NewTaskCreatedHandler(logger)
 	inMemoryPublisher.Register(
 		"task.created",
@@ -58,7 +56,6 @@ func main() {
 		},
 	)
 
-	// 👇 PASS SEBAGAI INTERFACE
 	server, err := InitializeServer(inMemoryPublisher)
 	if err != nil {
 		log.Fatal(err)

@@ -9,6 +9,7 @@ import (
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/domain/valueobject"
 
 	sharedvalidator "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/validator"
+	userReader "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/in"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/out"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/service"
@@ -20,6 +21,8 @@ var Module = wire.NewSet(
 	security.NewBcryptHasher,
 	security.NewJWTGenerator,
 	sharedvalidator.NewValidator,
+
+	userReader.NewUserReaderImpl,
 
 	wire.Bind(
 		new(out.TokenGenerator),
