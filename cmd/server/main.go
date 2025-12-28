@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	cartHttp "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/adapter/in/http"
 	sharedEvent "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/event"
 	_logger "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/logger"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/middleware"
@@ -25,6 +26,7 @@ func NewServer(
 	log _logger.Logger,
 	userHandler *userHttp.Handler,
 	taskHandler *taskHttp.Handler,
+	cartHandler *cartHttp.Handler,
 ) *Server {
 	r := gin.Default()
 
@@ -35,6 +37,7 @@ func NewServer(
 
 	userHandler.Register(r)
 	taskHandler.Register(r)
+	cartHandler.Register(r)
 
 	return &Server{Engine: r}
 }

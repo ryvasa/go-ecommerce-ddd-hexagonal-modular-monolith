@@ -11,6 +11,7 @@ import (
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/database"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/logger"
 
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user"
 )
@@ -20,6 +21,7 @@ func InitializeServer(
 ) (*Server, error) {
 	wire.Build(
 		config.LoadMySQLConfig,
+		config.NewJWTConfig,
 
 		// infra
 		database.NewGormDB,
@@ -29,6 +31,7 @@ func InitializeServer(
 		// modules
 		user.Module,
 		task.Module,
+		cart.Module,
 
 		NewServer,
 	)

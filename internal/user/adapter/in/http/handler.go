@@ -4,36 +4,73 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/response"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/in/http/request"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/in"
 )
 
 type Handler struct {
-	usecase in.UserUsecase
+	usecase   in.UserUsecase
+	validator *validator.Validate
 }
 
-func NewHandler(uc in.UserUsecase) *Handler {
-	return &Handler{usecase: uc}
+func NewHandler(uc in.UserUsecase, v *validator.Validate) *Handler {
+	return &Handler{usecase: uc, validator: v}
 }
 
 func (h *Handler) Register(r *gin.Engine) {
-	r.POST("/users", h.createUser)
+	r.POST("/users/register", h.register)
+	r.POST("/users/login", h.login)
 }
 
-func (h *Handler) createUser(c *gin.Context) {
-	var req struct {
-		Email string `json:"email"`
-	}
+func (h *Handler) register(c *gin.Context) {
+	var req request.CreateUserRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.HandleError(c, err)
 		return
 	}
 
-	if err := h.usecase.Create(c.Request.Context(), req.Email); err != nil {
+	cmd := in.RegisterUserCommand{
+		Email:    req.Email,
+		Password: req.Password,
+	}
+
+	if err := h.usecase.Register(c.Request.Context(), cmd); err != nil {
 		response.HandleError(c, err)
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"status": "created"})
+}
+
+func (h *Handler) login(c *gin.Context) {
+	var req request.LoginUserRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.HandleError(c, err)
+		return
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		response.HandleError(c, err)
+		return
+	}
+
+	token, err := h.usecase.Login(
+		c.Request.Context(),
+		in.LoginUserCommand{
+			Email:    req.Email,
+			Password: req.Password,
+		},
+	)
+	if err != nil {
+		response.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"access_token": token,
+	})
 }

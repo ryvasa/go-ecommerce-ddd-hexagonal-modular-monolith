@@ -7,12 +7,17 @@
 package main
 
 import (
+	http3 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/adapter/in/http"
+	persistence3 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/adapter/out/persistence"
+	service3 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/application/service"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/event"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/validator"
 	http2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/adapter/in/http"
 	persistence2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/adapter/out/persistence"
 	service2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/application/service"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/in/http"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/persistence"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/security"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/service"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/config"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/database"
@@ -29,12 +34,19 @@ func InitializeServer(eventPublisher event.Publisher) (*Server, error) {
 		return nil, err
 	}
 	userRepository := persistence.NewGormUserRepository(db)
-	userService := service.NewUserService(userRepository, loggerLogger)
-	handler := http.NewHandler(userService)
+	bcryptHasher := security.NewBcryptHasher()
+	jwtConfig := config.NewJWTConfig()
+	jwtGenerator := security.NewJWTGenerator(jwtConfig)
+	userService := service.NewUserService(userRepository, bcryptHasher, jwtGenerator, loggerLogger)
+	validate := validator.NewValidator()
+	handler := http.NewHandler(userService, validate)
 	taskRepository := persistence2.NewGormTaskRepository(db)
 	manager := database.NewGormTxManager(db)
 	taskUsecase := service2.NewTaskService(taskRepository, userService, manager, eventPublisher)
 	httpHandler := http2.NewHandler(taskUsecase)
-	server := NewServer(loggerLogger, handler, httpHandler)
+	cartRepository := persistence3.NewGormCartRepository(db)
+	cartUsecase := service3.NewCartService(cartRepository, userService, manager, eventPublisher)
+	handler2 := http3.NewHandler(cartUsecase)
+	server := NewServer(loggerLogger, handler, httpHandler, handler2)
 	return server, nil
 }
