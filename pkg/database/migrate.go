@@ -77,3 +77,35 @@ func RollbackMigration(gormDB *gorm.DB, steps int) error {
 	fmt.Printf("✅ Rolled back %d migration(s)\n", steps)
 	return nil
 }
+
+// ForceMigrationVersion forces the database to a specific migration version.
+// Use this to fix "dirty database" errors.
+// WARNING: Use with caution! This doesn't actually run migrations, just updates the version.
+func ForceMigrationVersion(gormDB *gorm.DB, version int) error {
+	sqlDB, err := gormDB.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get sql.DB: %w", err)
+	}
+
+	driver, err := postgres.WithInstance(sqlDB, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("failed to create postgres driver: %w", err)
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://migrations",
+		"postgres",
+		driver,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create migrate instance: %w", err)
+	}
+
+	// Force to specific version
+	if err := m.Force(version); err != nil {
+		return fmt.Errorf("force version failed: %w", err)
+	}
+
+	fmt.Printf("✅ Forced migration version to %d\n", version)
+	return nil
+}
