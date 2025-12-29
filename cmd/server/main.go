@@ -32,7 +32,10 @@ func NewServer(
 ) *Server {
 	r := gin.Default()
 
-	r.Use(
+	public := r.Group("")
+	protected := r.Group("")
+
+	protected.Use(
 		middleware.RequestID(),
 		middleware.Logger(log),
 		middleware.JWT(jwtVerifier),
@@ -43,9 +46,9 @@ func NewServer(
 		c.Next()
 	})
 
-	userHandler.Register(r)
-	taskHandler.Register(r)
-	cartHandler.Register(r)
+	userHandler.Register(public, protected)
+	taskHandler.Register(public, protected)
+	cartHandler.Register(public, protected)
 
 	return &Server{Engine: r}
 }

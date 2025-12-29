@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,14 +22,15 @@ func NewHandler(uc in.UserUsecase, v *validator.Validate) *Handler {
 	return &Handler{usecase: uc, validator: v}
 }
 
-func (h *Handler) Register(r *gin.Engine) {
-	users := r.Group("/users")
+func (h *Handler) Register(public, protected *gin.RouterGroup) {
+	public = public.Group("/users")
+	protected = protected.Group("/users")
 
-	users.POST("/register", h.register)
-	users.POST("/login", h.login)
+	public.POST("/register", h.register)
+	public.POST("/login", h.login)
 
 	// contoh endpoint protected
-	users.GET("/me",
+	protected.GET("/me",
 		middleware.Require("user", "get"),
 		h.me,
 	)
@@ -46,6 +48,8 @@ func (h *Handler) register(c *gin.Context) {
 		Email:    req.Email,
 		Password: req.Password,
 	}
+
+	fmt.Println(req)
 
 	if err := h.usecase.Register(c.Request.Context(), cmd); err != nil {
 		response.HandleError(c, err)

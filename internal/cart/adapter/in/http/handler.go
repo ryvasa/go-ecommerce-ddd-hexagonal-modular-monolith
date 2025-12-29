@@ -17,9 +17,9 @@ func NewHandler(uc in.CartUsecase) *Handler {
 	return &Handler{usecase: uc}
 }
 
-func (h *Handler) Register(r *gin.Engine) {
-	r.POST("/cart", h.create)
-	r.GET("/cart", h.list)
+func (h *Handler) Register(public, protected *gin.RouterGroup) {
+	protected.POST("/cart", h.create)
+	protected.GET("/cart", h.list)
 }
 
 func (h *Handler) create(c *gin.Context) {
