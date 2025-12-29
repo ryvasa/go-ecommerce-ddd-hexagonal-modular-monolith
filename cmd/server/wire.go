@@ -19,20 +19,25 @@ import (
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/application/port/out"
 	userOut "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out"
 	casbinAuthz "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/authz/casbin"
+	configCasbin "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/config/casbin"
 )
 
 func InitializeServer(
 	eventPublisher sharedEvent.Publisher,
 ) (*Server, error) {
 	wire.Build(
-		config.LoadMySQLConfig,
+		// config
+		config.LoadPostgresConfig,
 		config.NewJWTConfig,
-		config.NewCasbinConfig,
 
 		// infra
 		database.NewGormDB,
 		database.NewGormTxManager,
 		logger.NewLogger,
+
+		// casbin
+		configCasbin.ProvideCasbinEnforcer,
+		casbinAuthz.ProvideAuthorizer,
 
 		// modules
 		user.Module,
@@ -44,7 +49,6 @@ func InitializeServer(
 			new(*userOut.UserReaderImpl),
 		),
 
-		casbinAuthz.NewCasbinEnforcer,
 		wire.Bind(
 			new(middleware.Authorizer),
 			new(*casbinAuthz.Enforcer),
