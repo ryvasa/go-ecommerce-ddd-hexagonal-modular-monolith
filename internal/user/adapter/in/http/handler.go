@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -48,8 +47,6 @@ func (h *Handler) register(c *gin.Context) {
 		Email:    req.Email,
 		Password: req.Password,
 	}
-
-	fmt.Println(req)
 
 	if err := h.usecase.Register(c.Request.Context(), cmd); err != nil {
 		response.HandleError(c, err)

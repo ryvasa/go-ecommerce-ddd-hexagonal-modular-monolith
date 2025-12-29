@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/logger"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/in"
@@ -104,6 +103,10 @@ func (s *UserService) GetByID(ctx context.Context, id string) (*entity.User, err
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(data)
+
+	if data == nil {
+		return nil, usererror.ErrUserNotFound
+	}
+
 	return data, nil
 }

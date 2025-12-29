@@ -34,6 +34,11 @@ func NewServer(
 ) *Server {
 	r := gin.Default()
 
+	r.Use(func(c *gin.Context) {
+		c.Set("authorizer", authorizer)
+		c.Next()
+	})
+
 	public := r.Group("")
 	protected := r.Group("")
 
@@ -42,11 +47,6 @@ func NewServer(
 		middleware.Logger(log),
 		middleware.JWT(jwtVerifier),
 	)
-
-	r.Use(func(c *gin.Context) {
-		c.Set("authorizer", authorizer)
-		c.Next()
-	})
 
 	userHandler.Register(public, protected)
 	taskHandler.Register(public, protected)
