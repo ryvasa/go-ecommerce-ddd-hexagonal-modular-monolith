@@ -39,6 +39,10 @@ func NewServer(
 		c.Next()
 	})
 
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{"service": "go-ecommerce-ddd-hexagonal-modular-monolith"})
+	})
+
 	public := r.Group("")
 	protected := r.Group("")
 
