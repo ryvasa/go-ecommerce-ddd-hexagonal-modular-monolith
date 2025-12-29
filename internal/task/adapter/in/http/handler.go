@@ -17,9 +17,9 @@ func NewHandler(uc in.TaskUsecase) *Handler {
 	return &Handler{usecase: uc}
 }
 
-func (h *Handler) Register(r *gin.Engine) {
-	r.POST("/tasks", h.create)
-	r.GET("/tasks", h.list)
+func (h *Handler) Register(public, protected *gin.RouterGroup) {
+	protected.POST("/tasks", h.create)
+	protected.GET("/tasks", h.list)
 }
 
 func (h *Handler) create(c *gin.Context) {
