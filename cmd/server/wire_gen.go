@@ -20,8 +20,9 @@ import (
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/persistence"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/security"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/service"
-	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/authz/casbin"
+	casbin2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/authz/casbin"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/config"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/config/casbin"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/database"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/logger"
 )
@@ -30,13 +31,13 @@ import (
 
 func InitializeServer(eventPublisher event.Publisher) (*Server, error) {
 	loggerLogger := logger.NewLogger()
-	casbinConfig := config.NewCasbinConfig()
-	enforcer, err := casbin.NewCasbinEnforcer(casbinConfig)
+	enforcer, err := casbin.ProvideCasbinEnforcer()
 	if err != nil {
 		return nil, err
 	}
-	mySQLConfig := config.LoadMySQLConfig()
-	db, err := database.NewGormDB(mySQLConfig)
+	casbinEnforcer := casbin2.ProvideAuthorizer(enforcer)
+	postgresConfig := config.LoadPostgresConfig()
+	db, err := database.NewGormDB(postgresConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -56,6 +57,6 @@ func InitializeServer(eventPublisher event.Publisher) (*Server, error) {
 	cartUsecase := service3.NewCartService(cartRepository, userReaderImpl, manager, eventPublisher)
 	handler2 := http3.NewHandler(cartUsecase)
 	jwtVerifier := security.NewJWTVerifier(jwtConfig)
-	server := NewServer(loggerLogger, enforcer, handler, httpHandler, handler2, jwtVerifier)
+	server := NewServer(loggerLogger, casbinEnforcer, handler, httpHandler, handler2, jwtVerifier)
 	return server, nil
 }
