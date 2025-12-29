@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	cartHttp "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/adapter/in/http"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/domain/authorization"
 	sharedEvent "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/event"
 	_logger "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/logger"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/middleware"
@@ -24,7 +25,7 @@ type Server struct {
 
 func NewServer(
 	log _logger.Logger,
-	authorizer middleware.Authorizer,
+	authorizer authorization.Authorizer,
 	userHandler *userHttp.Handler,
 	taskHandler *taskHttp.Handler,
 	cartHandler *cartHttp.Handler,

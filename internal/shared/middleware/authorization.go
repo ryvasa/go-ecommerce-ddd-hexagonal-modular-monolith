@@ -4,15 +4,12 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/domain/authorization"
 )
-
-type Authorizer interface {
-	Enforce(sub, obj, act string) (bool, error)
-}
 
 func Require(obj, act string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authorizer := c.MustGet("authorizer").(Authorizer)
+		authorizer := c.MustGet("authorizer").(authorization.Authorizer)
 		role := c.GetString("role")
 
 		ok, err := authorizer.Enforce(role, obj, act)
