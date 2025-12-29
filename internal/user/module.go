@@ -6,9 +6,9 @@ import (
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/in/http"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/persistence"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/security"
-	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/domain/valueobject"
 
 	sharedvalidator "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/validator"
+	userReader "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/in"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/out"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/service"
@@ -19,7 +19,11 @@ var Module = wire.NewSet(
 	service.NewUserService,
 	security.NewBcryptHasher,
 	security.NewJWTGenerator,
+	security.NewJWTVerifier,
+
 	sharedvalidator.NewValidator,
+
+	userReader.NewUserReaderImpl,
 
 	wire.Bind(
 		new(out.TokenGenerator),
@@ -28,9 +32,5 @@ var Module = wire.NewSet(
 
 	wire.Bind(new(in.UserUsecase), new(*service.UserService)),
 	wire.Bind(new(in.UserReader), new(*service.UserService)),
-	wire.Bind(
-		new(valueobject.PasswordHasher),
-		new(*security.BcryptHasher),
-	),
 	http.NewHandler,
 )

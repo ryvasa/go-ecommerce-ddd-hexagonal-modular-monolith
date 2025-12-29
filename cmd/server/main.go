@@ -24,16 +24,24 @@ type Server struct {
 
 func NewServer(
 	log _logger.Logger,
+	authorizer middleware.Authorizer,
 	userHandler *userHttp.Handler,
 	taskHandler *taskHttp.Handler,
 	cartHandler *cartHttp.Handler,
+	jwtVerifier middleware.JWTVerifier,
 ) *Server {
 	r := gin.Default()
 
 	r.Use(
 		middleware.RequestID(),
 		middleware.Logger(log),
+		middleware.JWT(jwtVerifier),
 	)
+
+	r.Use(func(c *gin.Context) {
+		c.Set("authorizer", authorizer)
+		c.Next()
+	})
 
 	userHandler.Register(r)
 	taskHandler.Register(r)
@@ -41,15 +49,14 @@ func NewServer(
 
 	return &Server{Engine: r}
 }
+
 func main() {
 	config.LoadEnv()
 
 	logger := logger.NewLogger()
 
-	// 👇 PEGANG CONCRETE
 	inMemoryPublisher := eventInfra.NewInMemoryPublisher()
 
-	// register handler (infra concern)
 	taskCreatedHandler := eventhandler.NewTaskCreatedHandler(logger)
 	inMemoryPublisher.Register(
 		"task.created",
@@ -58,7 +65,6 @@ func main() {
 		},
 	)
 
-	// 👇 PASS SEBAGAI INTERFACE
 	server, err := InitializeServer(inMemoryPublisher)
 	if err != nil {
 		log.Fatal(err)

@@ -1,10 +1,13 @@
 package security
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/out"
+	"golang.org/x/crypto/bcrypt"
+)
 
 type BcryptHasher struct{}
 
-func NewBcryptHasher() *BcryptHasher {
+func NewBcryptHasher() out.PasswordHasher {
 	return &BcryptHasher{}
 }
 

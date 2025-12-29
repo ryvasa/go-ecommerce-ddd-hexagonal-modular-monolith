@@ -1,6 +1,10 @@
 package in
 
-import "context"
+import (
+	"context"
+
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/domain/entity"
+)
 
 // RegisterUserCommand represents input data required
 // to register a new user in the system.
@@ -19,4 +23,5 @@ type LoginUserCommand struct {
 type UserUsecase interface {
 	Register(ctx context.Context, cmd RegisterUserCommand) error
 	Login(ctx context.Context, cmd LoginUserCommand) (string, error)
+	GetByID(ctx context.Context, id string) (*entity.User, error)
 }

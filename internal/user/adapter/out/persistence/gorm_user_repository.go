@@ -29,10 +29,7 @@ func (r *GormUserRepository) Save(ctx context.Context, user *entity.User) error 
 	return r.db.WithContext(ctx).Create(&model).Error
 }
 
-func (r *GormUserRepository) FindByEmail(
-	ctx context.Context,
-	email valueobject.Email,
-) (*entity.User, error) {
+func (r *GormUserRepository) FindByEmail(ctx context.Context, email valueobject.Email) (*entity.User, error) {
 
 	var model UserModel
 	if err := r.db.WithContext(ctx).
@@ -70,4 +67,33 @@ func (r *GormUserRepository) ExistsByID(ctx context.Context, id string) (bool, e
 		Count(&count).Error
 
 	return count > 0, err
+}
+
+func (r *GormUserRepository) GetByID(ctx context.Context, id string) (*entity.User, error) {
+	var model UserModel
+	if err := r.db.WithContext(ctx).
+		First(&model, "id = ?", id).
+		Error; err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	emailVO, err := valueobject.NewEmail(model.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	passwordVO, err := valueobject.NewHashedPassword(model.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	return entity.RehydrateUser(
+		model.ID,
+		emailVO,
+		passwordVO,
+	), nil
 }
