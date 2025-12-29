@@ -15,6 +15,7 @@ import (
 	taskEvent "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/domain/event"
 	userHttp "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/in/http"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/config"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/database"
 	eventInfra "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/event"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/logger"
 )
@@ -58,6 +59,20 @@ func main() {
 	config.LoadEnv()
 
 	logger := logger.NewLogger()
+
+	// Initialize database connection early for migrations
+	postgresConfig := config.LoadPostgresConfig()
+	db, err := database.NewGormDB(postgresConfig)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
+	// Run database migrations
+	log.Println("🔄 Running database migrations...")
+	if err := database.RunMigrations(db); err != nil {
+		log.Fatalf("❌ Migration failed: %v", err)
+	}
+	log.Println("✅ Migrations completed successfully")
 
 	inMemoryPublisher := eventInfra.NewInMemoryPublisher()
 
