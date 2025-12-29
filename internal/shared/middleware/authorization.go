@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/domain/authorization"
 )
@@ -13,7 +11,6 @@ func Require(obj, act string) gin.HandlerFunc {
 		role := c.GetString("role")
 
 		ok, err := authorizer.Enforce(role, obj, act)
-		fmt.Println(role, obj, act)
 		if err != nil || !ok {
 			c.AbortWithStatusJSON(403, gin.H{
 				"message": "forbidden",
