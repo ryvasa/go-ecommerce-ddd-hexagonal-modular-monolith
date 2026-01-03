@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/application/port/in"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/application/port/out"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/domain/entity"
+	taskerror "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/domain/error"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/domain/event"
 	userIn "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/in"
 )
@@ -39,6 +41,17 @@ func NewTaskService(
 
 func (s *TaskService) Create(ctx context.Context, userID, title string) error {
 	return s.txManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		// Validate user ID
+		if strings.TrimSpace(userID) == "" {
+			return taskerror.ErrEmptyUserID
+		}
+
+		// Validate title
+		if strings.TrimSpace(title) == "" {
+			return taskerror.ErrEmptyTitle
+		}
+
+		// Check if user exists (cross-module check, use shared apperror)
 		exists, err := s.userReader.Exists(txCtx, userID)
 		if err != nil {
 			return err
