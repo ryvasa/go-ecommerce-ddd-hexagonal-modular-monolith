@@ -11,10 +11,13 @@ import (
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/database"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/logger"
 
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user"
 
+	authSecurity "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/adapter/out/security"
+	authPortOut "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/application/port/out"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/application/port/out"
 	userOut "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out"
 	casbinInfra "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/authorization/casbin"
@@ -39,12 +42,20 @@ func InitializeServer(
 
 		// modules
 		user.Module,
+		auth.Module,
 		task.Module,
 		cart.Module,
 
+		// Bind UserReader for other module
 		wire.Bind(
 			new(out.UserReader),
 			new(*userOut.UserReaderImpl),
+		),
+
+		// Bind TokenGenerator for auth module
+		wire.Bind(
+			new(authPortOut.TokenGenerator),
+			new(*authSecurity.JWTGenerator), // Now from auth module
 		),
 
 		NewServer,

@@ -2,17 +2,23 @@ package entity
 
 import (
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/domain/valueobject"
 )
 
 type User struct {
-	id       string
-	email    valueobject.Email
-	password valueobject.Password
-	active   bool
-	roles    map[string]struct{}
+	id              string
+	email           valueobject.Email
+	password        valueobject.Password
+	roles           map[string]struct{}
+	firstName       string
+	lastName        string
+	username        string
+	phone           string
+	birthDate       time.Time
+	emailVerifiedAt time.Time
 }
 
 func RehydrateUser(
@@ -20,12 +26,6 @@ func RehydrateUser(
 	email valueobject.Email,
 	password valueobject.Password,
 ) *User {
-
-	// roleMap := make(map[string]struct{}, len(roles))
-	// for _, r := range roles {
-	// 	roleMap[r] = struct{}{}
-	// }
-
 	return &User{
 		id:       id,
 		email:    email,
@@ -33,22 +33,6 @@ func RehydrateUser(
 		// active:   active,
 		// roles:    roleMap,
 	}
-}
-
-func (u *User) Activate() error {
-	if u.active {
-		return errors.New("user already active")
-	}
-	u.active = true
-	return nil
-}
-
-func (u *User) Deactivate() error {
-	if !u.active {
-		return errors.New("user already inactive")
-	}
-	u.active = false
-	return nil
 }
 
 func (u *User) ChangePassword(
@@ -81,14 +65,19 @@ func (u *User) AssignRole(role string) error {
 func NewUser(
 	email valueobject.Email,
 	password valueobject.Password,
+	username string,
+	firstName string,
+	lastName string,
 ) *User {
 
 	return &User{
-		id:       uuid.NewString(),
-		email:    email,
-		password: password,
-		active:   true,
-		roles:    map[string]struct{}{"user": {}},
+		id:        uuid.NewString(),
+		email:     email,
+		username:  username,
+		firstName: firstName,
+		lastName:  lastName,
+		password:  password,
+		roles:     map[string]struct{}{"user": {}},
 	}
 }
 
@@ -104,14 +93,22 @@ func (u *User) Password() valueobject.Password {
 	return u.password
 }
 
-func (u *User) IsActive() bool {
-	return u.active
-}
-
 func (u *User) Roles() []string {
 	roles := make([]string, 0, len(u.roles))
 	for r := range u.roles {
 		roles = append(roles, r)
 	}
 	return roles
+}
+
+func (u *User) Username() string {
+	return u.username
+}
+
+func (u *User) FirstName() string {
+	return u.firstName
+}
+
+func (u *User) LastName() string {
+	return u.lastName
 }

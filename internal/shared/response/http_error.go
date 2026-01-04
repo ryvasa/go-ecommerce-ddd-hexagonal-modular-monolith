@@ -22,12 +22,13 @@ type ErrorMapping struct {
 
 // HTTPErrorResponse represents the structured HTTP error response
 type HTTPErrorResponse struct {
-	RequestID string                 `json:"request_id"`
-	Timestamp string                 `json:"timestamp"`
-	Path      string                 `json:"path"`
-	Error     string                 `json:"error"`
-	Message   string                 `json:"message"`
-	Details   map[string]interface{} `json:"details,omitempty"`
+	StatusCode int                    `json:"status_code"`
+	RequestID  string                 `json:"request_id"`
+	Timestamp  string                 `json:"timestamp"`
+	Path       string                 `json:"path"`
+	Error      string                 `json:"error"`
+	Message    string                 `json:"message"`
+	Details    map[string]interface{} `json:"details,omitempty"`
 }
 
 // DomainError interface for errors with metadata
@@ -76,15 +77,17 @@ func HandleError(c *gin.Context, err error) {
 
 	// 1. Check for apperror (shared errors from infrastructure)
 	if appErr, ok := err.(*apperror.Error); ok {
+		status := mapAppErrorToStatus(appErr)
 		respondWithError(c, HTTPErrorResponse{
-			RequestID: requestID,
-			Timestamp: time.Now().UTC().Format(time.RFC3339),
-			Path:      c.Request.URL.Path,
-			Error:     appErr.Code,
-			Message:   appErr.Message,
-			Details:   convertDetails(appErr.Details),
-		}, mapAppErrorToStatus(appErr))
-		logError(c, appErr, mapAppErrorToStatus(appErr))
+			StatusCode: status,
+			RequestID:  requestID,
+			Timestamp:  time.Now().UTC().Format(time.RFC3339),
+			Path:       c.Request.URL.Path,
+			Error:      appErr.Code,
+			Message:    appErr.Message,
+			Details:    convertDetails(appErr.Details),
+		}, status)
+		logError(c, appErr, status)
 		return
 	}
 
@@ -111,12 +114,13 @@ func HandleError(c *gin.Context, err error) {
 	}
 
 	respondWithError(c, HTTPErrorResponse{
-		RequestID: requestID,
-		Timestamp: time.Now().UTC().Format(time.RFC3339),
-		Path:      c.Request.URL.Path,
-		Error:     code,
-		Message:   message,
-		Details:   details,
+		StatusCode: status,
+		RequestID:  requestID,
+		Timestamp:  time.Now().UTC().Format(time.RFC3339),
+		Path:       c.Request.URL.Path,
+		Error:      code,
+		Message:    message,
+		Details:    details,
 	}, status)
 
 	logError(c, err, status)
@@ -152,12 +156,13 @@ func handleValidationError(c *gin.Context, err error, requestID string) bool {
 	}
 
 	respondWithError(c, HTTPErrorResponse{
-		RequestID: requestID,
-		Timestamp: time.Now().UTC().Format(time.RFC3339),
-		Path:      c.Request.URL.Path,
-		Error:     "VALIDATION_ERROR",
-		Message:   "validation failed",
-		Details:   fieldErrors,
+		StatusCode: http.StatusBadRequest,
+		RequestID:  requestID,
+		Timestamp:  time.Now().UTC().Format(time.RFC3339),
+		Path:       c.Request.URL.Path,
+		Error:      "VALIDATION_ERROR",
+		Message:    "validation failed",
+		Details:    fieldErrors,
 	}, http.StatusBadRequest)
 
 	logError(c, err, http.StatusBadRequest)

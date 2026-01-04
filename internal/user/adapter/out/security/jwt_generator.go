@@ -19,12 +19,12 @@ func NewJWTGenerator(cfg config.JWTConfig) *JWTGenerator {
 	}
 }
 
-func (j *JWTGenerator) Generate(userID string, role string) (string, error) {
+func (j *JWTGenerator) Generate(userID string, roles []string) (string, error) {
 	claims := jwt.MapClaims{
-		"sub":  userID,
-		"role": role,
-		"exp":  time.Now().Add(j.expiration).Unix(),
-		"iat":  time.Now().Unix(),
+		"sub":   userID,
+		"roles": roles, // Changed from "role" to "roles" and accepting slice
+		"exp":   time.Now().Add(j.expiration).Unix(),
+		"iat":   time.Now().Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

@@ -15,17 +15,15 @@ type UserService struct {
 	repo           out.UserRepository
 	passwordHasher out.PasswordHasher
 	logger         logger.Logger
-	tokenGenerator out.TokenGenerator
 }
 
 var _ in.UserUsecase = (*UserService)(nil)
 var _ in.UserReader = (*UserService)(nil)
 
-func NewUserService(repo out.UserRepository, hasher out.PasswordHasher, tokenGen out.TokenGenerator, log logger.Logger) *UserService {
+func NewUserService(repo out.UserRepository, hasher out.PasswordHasher, log logger.Logger) *UserService {
 	return &UserService{
 		repo:           repo,
 		passwordHasher: hasher,
-		tokenGenerator: tokenGen,
 		logger:         log,
 	}
 }
@@ -55,7 +53,7 @@ func (s *UserService) Register(ctx context.Context, cmd in.RegisterUserCommand) 
 		return err
 	}
 
-	user := entity.NewUser(email, password)
+	user := entity.NewUser(email, password, cmd.Username, cmd.FirstName, cmd.LastName)
 
 	if err := s.repo.Save(ctx, user); err != nil {
 		s.logger.Error("failed to register user", "err", err)
@@ -65,15 +63,7 @@ func (s *UserService) Register(ctx context.Context, cmd in.RegisterUserCommand) 
 	return nil
 }
 
-func (s *UserService) Login(ctx context.Context, cmd in.LoginUserCommand) (string, error) {
-
-	s.logger.Info("user login attempt", "email", cmd.Email)
-
-	email, err := valueobject.NewEmail(cmd.Email)
-	if err != nil {
-		return "", usererror.ErrInvalidCredential
-	}
-
+func (s *UserService) VerifyCredentials(ctx context.Context, email valueobject.Email, plainPassword string) (string, error) {
 	user, err := s.repo.FindByEmail(ctx, email)
 	if err != nil {
 		return "", err
@@ -82,16 +72,11 @@ func (s *UserService) Login(ctx context.Context, cmd in.LoginUserCommand) (strin
 		return "", usererror.ErrInvalidCredential
 	}
 
-	if !user.Password().Verify(cmd.Password, s.passwordHasher) {
+	if !user.Password().Verify(plainPassword, s.passwordHasher) {
 		return "", usererror.ErrInvalidCredential
 	}
 
-	token, err := s.tokenGenerator.Generate(user.ID(), "user")
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
+	return user.ID(), nil
 }
 
 func (s *UserService) Exists(ctx context.Context, userID string) (bool, error) {

@@ -26,7 +26,6 @@ func (h *Handler) Register(public, protected *gin.RouterGroup) {
 	protected = protected.Group("/users")
 
 	public.POST("/register", h.register)
-	public.POST("/login", h.login)
 
 	// contoh endpoint protected
 	protected.GET("/me",
@@ -43,9 +42,17 @@ func (h *Handler) register(c *gin.Context) {
 		return
 	}
 
+	if err := h.validator.Struct(req); err != nil {
+		response.HandleError(c, err)
+		return
+	}
+
 	cmd := in.RegisterUserCommand{
-		Email:    req.Email,
-		Password: req.Password,
+		Email:     req.Email,
+		Password:  req.Password,
+		Username:  req.Username,
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
 	}
 
 	if err := h.usecase.Register(c.Request.Context(), cmd); err != nil {
@@ -53,36 +60,8 @@ func (h *Handler) register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"status": "created"})
-}
-
-func (h *Handler) login(c *gin.Context) {
-	var req request.LoginUserRequest
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.HandleError(c, err)
-		return
-	}
-
-	if err := h.validator.Struct(req); err != nil {
-		response.HandleError(c, err)
-		return
-	}
-
-	token, err := h.usecase.Login(
-		c.Request.Context(),
-		in.LoginUserCommand{
-			Email:    req.Email,
-			Password: req.Password,
-		},
-	)
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"access_token": token,
+	response.SuccessResponse(c, http.StatusCreated, "user registered successfully", gin.H{
+		"email": cmd.Email,
 	})
 }
 

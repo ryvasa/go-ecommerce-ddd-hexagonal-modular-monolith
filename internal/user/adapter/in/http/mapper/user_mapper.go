@@ -7,9 +7,8 @@ import (
 
 func ToUserResponse(u *entity.User) response.UserResponse {
 	return response.UserResponse{
-		ID:     u.ID(),
-		Email:  u.Email().Value(),
-		Active: u.IsActive(),
-		Roles:  u.Roles(),
+		ID:    u.ID(),
+		Email: u.Email().Value(),
+		Roles: u.Roles(),
 	}
 }

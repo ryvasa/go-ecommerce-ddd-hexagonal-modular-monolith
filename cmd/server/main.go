@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	authHttp "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/adapter/in/http"
 	cartHttp "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/adapter/in/http"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/domain/authorization"
 	sharedEvent "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/event"
@@ -28,6 +29,7 @@ func NewServer(
 	log _logger.Logger,
 	authorizer authorization.Authorizer,
 	userHandler *userHttp.Handler,
+	authHandler *authHttp.Handler,
 	taskHandler *taskHttp.Handler,
 	cartHandler *cartHttp.Handler,
 	jwtVerifier middleware.JWTVerifier,
@@ -43,8 +45,10 @@ func NewServer(
 		c.JSON(200, gin.H{"service": "go-ecommerce-ddd-hexagonal-modular-monolith"})
 	})
 
-	public := r.Group("")
-	protected := r.Group("")
+	api := r.Group("/api")
+
+	public := api.Group("")
+	protected := api.Group("")
 
 	protected.Use(
 		middleware.RequestID(),
@@ -53,6 +57,7 @@ func NewServer(
 	)
 
 	userHandler.Register(public, protected)
+	authHandler.Register(public, protected)
 	taskHandler.Register(public, protected)
 	cartHandler.Register(public, protected)
 

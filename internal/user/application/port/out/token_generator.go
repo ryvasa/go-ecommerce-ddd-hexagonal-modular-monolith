@@ -1,5 +1,5 @@
 package out
 
 type TokenGenerator interface {
-	Generate(userID string, role string) (string, error)
+	Generate(userID string, roles []string) (string, error)
 }

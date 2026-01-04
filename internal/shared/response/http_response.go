@@ -1,7 +1,22 @@
 package response
 
-import "github.com/gin-gonic/gin"
+import (
+	"time"
 
+	"github.com/gin-gonic/gin"
+)
+
+type HTTPSuccessResponse struct {
+	StatusCode int         `json:"status_code"`
+	RequestID  string      `json:"request_id"`
+	Timestamp  string      `json:"timestamp"`
+	Path       string      `json:"path"`
+	Success    bool        `json:"success"`
+	Message    string      `json:"message"`
+	Data       interface{} `json:"data,omitempty"`
+}
+
+// Legacy Response struct (kept for backward compatibility)
 type Response struct {
 	Status  int         `json:"status"`
 	Success bool        `json:"success"`
@@ -26,7 +41,19 @@ func ErrorResponse(c *gin.Context, err error) {
 	c.JSON(statusCode, response)
 }
 
-func SuccessResponse(c *gin.Context, statusCode int, data interface{}) {
-	response := NewResponse(statusCode, true, "success", data, nil)
+// SuccessResponse creates a standardized success response
+func SuccessResponse(c *gin.Context, statusCode int, message string, data interface{}) {
+	requestID := getRequestID(c)
+
+	response := HTTPSuccessResponse{
+		StatusCode: statusCode,
+		RequestID:  requestID,
+		Timestamp:  time.Now().UTC().Format(time.RFC3339),
+		Path:       c.Request.URL.Path,
+		Success:    true,
+		Message:    message,
+		Data:       data,
+	}
+
 	c.JSON(statusCode, response)
 }
