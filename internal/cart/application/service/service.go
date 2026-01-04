@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"strings"
 
 	"github.com/google/uuid"
 
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/application/port/in"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/application/port/out"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/domain/entity"
+	carterror "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/domain/error"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/apperror"
 	sharedEvent "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/event"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/transaction"
@@ -34,6 +36,17 @@ func NewCartService(
 
 func (s *CartService) Create(ctx context.Context, userID, title string) error {
 	return s.txManager.WithinTransaction(ctx, func(txCtx context.Context) error {
+		// Validate user ID
+		if strings.TrimSpace(userID) == "" {
+			return carterror.ErrEmptyUserID
+		}
+
+		// Validate title
+		if strings.TrimSpace(title) == "" {
+			return carterror.ErrEmptyTitle
+		}
+
+		// Check if user exists (cross-module check, use shared apperror)
 		exists, err := s.userReader.Exists(txCtx, userID)
 		if err != nil {
 			return err

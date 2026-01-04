@@ -7,16 +7,20 @@
 package main
 
 import (
-	http3 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/adapter/in/http"
+	http2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/adapter/in/http"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/adapter/out"
+	security2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/adapter/out/security"
+	service2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/application/service"
+	http4 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/adapter/in/http"
 	persistence3 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/adapter/out/persistence"
-	service3 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/application/service"
+	service4 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/application/service"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/event"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/validator"
-	http2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/adapter/in/http"
+	http3 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/adapter/in/http"
 	persistence2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/adapter/out/persistence"
-	service2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/application/service"
+	service3 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/application/service"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/in/http"
-	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out"
+	out2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/persistence"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/security"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/service"
@@ -42,20 +46,23 @@ func InitializeServer(eventPublisher event.Publisher) (*Server, error) {
 	authorizer := casbin.ProvideAuthorizer(enforcer)
 	userRepository := persistence.NewGormUserRepository(db)
 	passwordHasher := security.NewBcryptHasher()
-	jwtConfig := config.NewJWTConfig()
-	jwtGenerator := security.NewJWTGenerator(jwtConfig)
-	userService := service.NewUserService(userRepository, passwordHasher, jwtGenerator, loggerLogger)
+	userService := service.NewUserService(userRepository, passwordHasher, loggerLogger)
 	validate := validator.NewValidator()
 	handler := http.NewHandler(userService, validate)
+	userAuthenticator := out.NewUserAuthenticatorImpl(userService)
+	jwtConfig := config.NewJWTConfig()
+	jwtGenerator := security2.NewJWTGenerator(jwtConfig)
+	authUsecase := service2.NewAuthService(userAuthenticator, jwtGenerator, loggerLogger)
+	httpHandler := http2.NewHandler(authUsecase, validate)
 	taskRepository := persistence2.NewGormTaskRepository(db)
 	manager := database.NewGormTxManager(db)
-	taskUsecase := service2.NewTaskService(taskRepository, userService, manager, eventPublisher)
-	httpHandler := http2.NewHandler(taskUsecase)
+	taskUsecase := service3.NewTaskService(taskRepository, userService, manager, eventPublisher)
+	handler2 := http3.NewHandler(taskUsecase)
 	cartRepository := persistence3.NewGormCartRepository(db)
-	userReaderImpl := out.NewUserReaderImpl(userRepository)
-	cartUsecase := service3.NewCartService(cartRepository, userReaderImpl, manager, eventPublisher)
-	handler2 := http3.NewHandler(cartUsecase)
-	jwtVerifier := security.NewJWTVerifier(jwtConfig)
-	server := NewServer(loggerLogger, authorizer, handler, httpHandler, handler2, jwtVerifier)
+	userReaderImpl := out2.NewUserReaderImpl(userRepository)
+	cartUsecase := service4.NewCartService(cartRepository, userReaderImpl, manager, eventPublisher)
+	handler3 := http4.NewHandler(cartUsecase)
+	jwtVerifier := security2.NewJWTVerifier(jwtConfig)
+	server := NewServer(loggerLogger, authorizer, handler, httpHandler, handler2, handler3, jwtVerifier)
 	return server, nil
 }
