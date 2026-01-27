@@ -1,7 +1,12 @@
+---
+trigger: always_on
+---
+
 # AI Agent Rules — Backend Golang
 
 ## Tujuan
-Dokumen ini berisi **aturan keras (non-negotiable rules)** untuk AI agent saat membantu pengembangan backend **Golang** menggunakan **DDD (Domain-Driven Design)** dan **Hexagonal Architecture (Ports & Adapters)**. Fokus utama: *maintainability*, *testability*, *explicit boundaries*, dan *long-term scalability*.
+
+Dokumen ini berisi **aturan keras (non-negotiable rules)** untuk AI agent saat membantu pengembangan backend **Golang** menggunakan **DDD (Domain-Driven Design)** dan **Hexagonal Architecture (Ports & Adapters)**. Fokus utama: _maintainability_, _testability_, _explicit boundaries_, dan _long-term scalability_.
 
 ---
 
@@ -9,7 +14,7 @@ Dokumen ini berisi **aturan keras (non-negotiable rules)** untuk AI agent saat m
 
 1. **Domain adalah pusat segalanya**
    - Domain **tidak boleh** bergantung pada framework, database, HTTP, gRPC, ORM, atau library eksternal.
-   - Domain hanya berisi *business rules*.
+   - Domain hanya berisi _business rules_.
 
 2. **Dependency Rule (Clean Architecture)**
    - Arah dependensi selalu **ke dalam**:
@@ -67,6 +72,7 @@ pkg/
 ## 3. Domain Layer Rules
 
 ### 3.1 Entity
+
 - Entity **selalu punya identity**.
 - Tidak boleh ada setter publik sembarangan.
 - State hanya berubah lewat **method domain**.
@@ -82,6 +88,7 @@ func (u *User) Activate() error {
 ```
 
 ### 3.2 Value Object
+
 - Immutable.
 - Validasi di constructor.
 - Tidak expose primitive mentah.
@@ -91,6 +98,7 @@ func NewEmail(v string) (Email, error)
 ```
 
 ### 3.3 Domain Error
+
 - Error domain **bermakna bisnis**, bukan teknis.
 - Tidak menggunakan error string mentah.
 
@@ -99,6 +107,7 @@ func NewEmail(v string) (Email, error)
 ## 4. Application Layer Rules
 
 ### 4.1 Usecase
+
 - Usecase **1 tanggung jawab**.
 - Tidak ada logika HTTP / DB / gRPC.
 - Semua dependency lewat **port/out**.
@@ -110,10 +119,12 @@ type RegisterUserUsecase struct {
 ```
 
 ### 4.2 DTO
+
 - DTO hanya untuk **boundary crossing**.
 - DTO **tidak** dipakai di domain.
 
 ### 4.3 Transaction Handling
+
 - Transaction dikontrol di **application layer**.
 - Domain tidak tahu transaction.
 
@@ -122,10 +133,12 @@ type RegisterUserUsecase struct {
 ## 5. Port Rules (Hexagonal)
 
 ### 5.1 Port In
-- Mewakili *intent bisnis*.
+
+- Mewakili _intent bisnis_.
 - Biasanya interface usecase.
 
 ### 5.2 Port Out
+
 - Didefinisikan oleh **caller module**, bukan implementor.
 - Domain/application hanya bergantung pada interface.
 
@@ -191,6 +204,7 @@ type UserRepository interface {
 Sebelum menulis atau mengubah kode, AI **WAJIB** memastikan:
 
 ### 11.1 Boundary & Layer
+
 - [ ] Kode ini berada di **module apa** (bounded context mana)?
 - [ ] Apakah module ini pemilik domain tersebut?
 - [ ] Kode ini berada di **layer yang benar** (domain / application / adapter / shared)?
@@ -198,37 +212,43 @@ Sebelum menulis atau mengubah kode, AI **WAJIB** memastikan:
 - [ ] Apakah arah dependensi selalu menuju ke dalam?
 
 ### 11.2 Domain Purity
-- [ ] Apakah ini benar-benar *business rule*?
+
+- [ ] Apakah ini benar-benar _business rule_?
 - [ ] Apakah domain bebas dari ORM (GORM), SQL, HTTP, JSON tag, config?
 - [ ] Apakah entity memiliki behavior (tidak anemic)?
 - [ ] Apakah invariant dijaga di constructor atau method domain?
 - [ ] Apakah value object immutable dan tervalidasi?
 
 ### 11.3 Repository & Port
+
 - [ ] Apakah repository interface berada di **domain**?
 - [ ] Apakah repository menggunakan entity & value object (bukan DTO)?
 - [ ] Apakah cross-module call dilakukan lewat **port**, bukan import langsung?
 - [ ] Apakah module pemilik domain yang mengimplementasikan port tersebut?
 
 ### 11.4 Application Layer
+
 - [ ] Apakah usecase hanya mengorkestrasi flow?
 - [ ] Apakah usecase bebas dari SQL, ORM, HTTP, dan framework?
 - [ ] Apakah transaction dikelola di application layer?
 - [ ] Apakah semua dependency di-inject via constructor?
 
 ### 11.5 Adapter / Infrastructure
+
 - [ ] Apakah GORM hanya digunakan di adapter/out/persistence?
 - [ ] Apakah entity domain bebas dari tag GORM?
 - [ ] Apakah mapping entity ↔ persistence model eksplisit?
 - [ ] Apakah Casbin hanya digunakan di adapter / middleware?
 
 ### 11.6 Tooling & Ops
+
 - [ ] Apakah Wire hanya digunakan di composition root (cmd)?
 - [ ] Apakah tidak ada auto-migrate di production?
 - [ ] Apakah migration versioned dan reproducible?
 - [ ] Apakah config tidak bocor ke domain?
 
 ### 11.7 Testability
+
 - [ ] Apakah domain bisa diuji tanpa database atau infra?
 - [ ] Apakah usecase bisa diuji dengan mock port?
 - [ ] Apakah adapter diuji via integration test?
@@ -238,12 +258,10 @@ Jika **satu saja** checklist di atas gagal → AI **HARUS berhenti**, menjelaska
 
 ---
 
-
 ## Penutup
 
-Jika ada konflik antara *kecepatan* dan *arsitektur*, **arsitektur menang**.
+Jika ada konflik antara _kecepatan_ dan _arsitektur_, **arsitektur menang**.
 AI agent harus selalu memilih solusi yang paling eksplisit, terpisah, dan mudah diuji.
-
 
 ---
 
@@ -396,8 +414,7 @@ Dokumen ini memperketat rule sebelumnya dengan fokus **Modular Monolith**, serta
 ## Prinsip Penutup (WAJIB DIPEGANG AI)
 
 > **Modular Monolith bukan Microservice versi hemat.**
-> 
-> Ia adalah monolith dengan *domain discipline*.
-> 
+>
+> Ia adalah monolith dengan _domain discipline_.
+>
 > Jika ragu antara cepat vs benar → **pilih benar**.
-
