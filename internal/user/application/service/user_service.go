@@ -6,13 +6,14 @@ import (
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/logger"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/in"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/out"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/domain"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/domain/entity"
 	usererror "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/domain/error"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/domain/valueobject"
 )
 
 type UserService struct {
-	repo           out.UserRepository
+	repo           domain.UserRepository
 	passwordHasher out.PasswordHasher
 	logger         logger.Logger
 }
@@ -20,7 +21,7 @@ type UserService struct {
 var _ in.UserUsecase = (*UserService)(nil)
 var _ in.UserReader = (*UserService)(nil)
 
-func NewUserService(repo out.UserRepository, hasher out.PasswordHasher, log logger.Logger) *UserService {
+func NewUserService(repo domain.UserRepository, hasher out.PasswordHasher, log logger.Logger) *UserService {
 	return &UserService{
 		repo:           repo,
 		passwordHasher: hasher,

@@ -6,7 +6,6 @@ import (
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/application/port/in"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/application/port/out"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/logger"
-	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/domain/valueobject"
 )
 
 type AuthService struct {
@@ -30,12 +29,7 @@ func NewAuthService(
 func (s *AuthService) Login(ctx context.Context, cmd in.LoginCommand) (string, error) {
 	s.logger.Info("authenticating user", "email", cmd.Email)
 
-	email, err := valueobject.NewEmail(cmd.Email)
-	if err != nil {
-		return "", err
-	}
-
-	userID, err := s.userAuthenticator.VerifyCredentials(ctx, email, cmd.Password)
+	userID, err := s.userAuthenticator.VerifyCredentials(ctx, cmd.Email, cmd.Password)
 	if err != nil {
 		s.logger.Error("authentication failed", "err", err)
 		return "", err

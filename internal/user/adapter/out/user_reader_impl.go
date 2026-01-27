@@ -3,14 +3,14 @@ package out
 import (
 	"context"
 
-	userOut "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/out"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/domain"
 )
 
 type UserReaderImpl struct {
-	repo userOut.UserRepository
+	repo domain.UserRepository
 }
 
-func NewUserReaderImpl(repo userOut.UserRepository) *UserReaderImpl {
+func NewUserReaderImpl(repo domain.UserRepository) *UserReaderImpl {
 	return &UserReaderImpl{
 		repo: repo,
 	}

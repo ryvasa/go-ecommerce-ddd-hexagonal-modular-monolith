@@ -6,7 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/application/port/out"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/domain"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/domain/entity"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/domain/valueobject"
 )
@@ -15,7 +15,7 @@ type GormUserRepository struct {
 	db *gorm.DB
 }
 
-func NewGormUserRepository(db *gorm.DB) out.UserRepository {
+func NewGormUserRepository(db *gorm.DB) domain.UserRepository {
 	return &GormUserRepository{db: db}
 }
 

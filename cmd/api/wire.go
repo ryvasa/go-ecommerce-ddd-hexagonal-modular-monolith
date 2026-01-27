@@ -13,7 +13,6 @@ import (
 
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart"
-	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user"
 
 	authSecurity "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/adapter/out/security"
@@ -43,7 +42,6 @@ func InitializeServer(
 		// modules
 		user.Module,
 		auth.Module,
-		task.Module,
 		cart.Module,
 
 		// Bind UserReader for other module

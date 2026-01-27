@@ -19,8 +19,13 @@ func NewUserAuthenticatorImpl(ur userPort.UserReader) authPort.UserAuthenticator
 
 func (a *UserAuthenticatorImpl) VerifyCredentials(
 	ctx context.Context,
-	email valueobject.Email,
+	email string,
 	plainPassword string,
 ) (string, error) {
-	return a.userReader.VerifyCredentials(ctx, email, plainPassword)
+	// Conversion from primitive to value object happens here in the adapter
+	emailVO, err := valueobject.NewEmail(email)
+	if err != nil {
+		return "", err
+	}
+	return a.userReader.VerifyCredentials(ctx, emailVO, plainPassword)
 }

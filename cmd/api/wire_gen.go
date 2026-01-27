@@ -11,14 +11,11 @@ import (
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/adapter/out"
 	security2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/adapter/out/security"
 	service2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/application/service"
-	http4 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/adapter/in/http"
-	persistence3 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/adapter/out/persistence"
-	service4 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/application/service"
+	http3 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/adapter/in/http"
+	persistence2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/adapter/out/persistence"
+	service3 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/application/service"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/event"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/validator"
-	http3 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/adapter/in/http"
-	persistence2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/adapter/out/persistence"
-	service3 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/task/application/service"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/in/http"
 	out2 "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/out/persistence"
@@ -54,15 +51,12 @@ func InitializeServer(eventPublisher event.Publisher) (*Server, error) {
 	jwtGenerator := security2.NewJWTGenerator(jwtConfig)
 	authUsecase := service2.NewAuthService(userAuthenticator, jwtGenerator, loggerLogger)
 	httpHandler := http2.NewHandler(authUsecase, validate)
-	taskRepository := persistence2.NewGormTaskRepository(db)
-	manager := database.NewGormTxManager(db)
-	taskUsecase := service3.NewTaskService(taskRepository, userService, manager, eventPublisher)
-	handler2 := http3.NewHandler(taskUsecase)
-	cartRepository := persistence3.NewGormCartRepository(db)
+	cartRepository := persistence2.NewGormCartRepository(db)
 	userReaderImpl := out2.NewUserReaderImpl(userRepository)
-	cartUsecase := service4.NewCartService(cartRepository, userReaderImpl, manager, eventPublisher)
-	handler3 := http4.NewHandler(cartUsecase)
+	manager := database.NewGormTxManager(db)
+	cartUsecase := service3.NewCartService(cartRepository, userReaderImpl, manager, eventPublisher)
+	handler2 := http3.NewHandler(cartUsecase)
 	jwtVerifier := security2.NewJWTVerifier(jwtConfig)
-	server := NewServer(loggerLogger, authorizer, handler, httpHandler, handler2, handler3, jwtVerifier)
+	server := NewServer(loggerLogger, authorizer, handler, httpHandler, handler2, jwtVerifier)
 	return server, nil
 }

@@ -20,10 +20,10 @@ func NewGormCartRepository(db *gorm.DB) out.CartRepository {
 func (r *GormCartRepository) Save(ctx context.Context, cart *entity.Cart) error {
 	db := getDB(ctx, r.db)
 	return db.WithContext(ctx).Create(&CartModel{
-		ID:     cart.ID,
-		UserID: cart.UserID,
-		Title:  cart.Title,
-		Done:   cart.Done,
+		ID:     cart.ID(),
+		UserID: cart.UserID(),
+		Title:  cart.Title(),
+		Done:   cart.IsDone(),
 	}).Error
 }
 
@@ -35,12 +35,7 @@ func (r *GormCartRepository) FindAll(ctx context.Context) ([]*entity.Cart, error
 
 	result := make([]*entity.Cart, 0, len(models))
 	for _, m := range models {
-		result = append(result, &entity.Cart{
-			ID:     m.ID,
-			UserID: m.UserID,
-			Title:  m.Title,
-			Done:   m.Done,
-		})
+		result = append(result, entity.RehydrateCart(m.ID, m.UserID, m.Title, m.Done))
 	}
 
 	return result, nil
