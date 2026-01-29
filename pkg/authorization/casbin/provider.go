@@ -2,16 +2,14 @@ package casbin
 
 import (
 	lib "github.com/casbin/casbin/v2"
-	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/domain/authorization"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/authorization"
 	"gorm.io/gorm"
 )
 
 // ProvideEnforcer creates a Casbin enforcer for dependency injection.
-// It will use database adapter if db is provided, otherwise uses file-based policies.
+// It uses database adapter for persistent policy storage.
 func ProvideEnforcer(db *gorm.DB) (*lib.Enforcer, error) {
-	// For now, we'll pass nil to use file-based policies
-	// In production, you can enable database adapter by passing db
-	return NewEnforcer(nil)
+	return NewEnforcer(db)
 }
 
 // ProvideAuthorizer creates an Authorizer implementation for dependency injection.

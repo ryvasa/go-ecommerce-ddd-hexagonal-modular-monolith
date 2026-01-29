@@ -2,7 +2,7 @@ package casbin
 
 import (
 	lib "github.com/casbin/casbin/v2"
-	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/domain/authorization"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/authorization"
 )
 
 // Adapter implements the domain authorization.Authorizer interface using Casbin.

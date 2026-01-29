@@ -1,7 +1,7 @@
 package authorization
 
 // Authorizer defines the port (interface) for authorization operations.
-// This is a domain-level interface that is implementation-agnostic.
+// This is an infrastructure-level interface that is implementation-agnostic.
 // Infrastructure adapters (like Casbin) will implement this interface.
 type Authorizer interface {
 	// Enforce checks if a subject can perform an action on an object

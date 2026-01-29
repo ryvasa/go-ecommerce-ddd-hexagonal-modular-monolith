@@ -6,10 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 	authHttp "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/auth/adapter/in/http"
 	cartHttp "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/cart/adapter/in/http"
-	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/domain/authorization"
 	sharedLogger "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/logger"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/shared/middleware"
 	userHttp "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/internal/user/adapter/in/http"
+	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/authorization"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/config"
 	eventInfra "github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/event"
 	"github.com/ryvasa/go-ddd-hexagonal-modular-monolith/pkg/logger"
@@ -31,6 +31,7 @@ func NewServer(
 
 	r.Use(func(c *gin.Context) {
 		c.Set("authorizer", authorizer)
+		c.Set("logger", log)
 		c.Next()
 	})
 
